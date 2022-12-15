@@ -19,6 +19,7 @@ The following software needs to be installed:
 ## Training session
 
 ### Step 1: Install k3d cluster
+
 ```sh
 git clone https://github.com/FabianHardt/k3d-bootstrap-cluster
 cd k3d-bootstrap-cluster
@@ -34,6 +35,7 @@ watch kubectl get pod,deployment,service,ingress -A --field-selector=metadata.na
 
 
 ### Step 2: Install Kuma
+
 ```sh
 git clone https://github.com/d4kine/occd-kuma-hol
 cd occd-kuma-hol
@@ -44,6 +46,7 @@ After deployment, the Kuma GUI is exposed via ingress via http://kuma.127-0-0-1.
 
 
 ### Step 3: Deploy demo app
+
 ```sh
 kubectl apply -f demo/
 ```
@@ -51,7 +54,8 @@ Verify the deployment by calling http://frontend.127-0-0-1.nip.io:8080/ (or http
 
 
 ### Step 4: Configure TrafficRoutes
-*Scenario:* 1 frontend, 3 backends (v0,v1,v2), 1 redis, 1 postgres
+
+*Scenario: 1 frontend, 3 backends (v0,v1,v2), 1 redis, 1 postgres*
 - Traffic will be routes 80% to v0, 20% to v1 & 0% to v2
 - It's only possible to call v2 with the header-atribute: `version: v2`
 
@@ -63,22 +67,21 @@ kubectl apply -f traffic-routes/
 ### Step 5: Configure mTLS
 
 #### Add Ingress to Mesh
-For mTLS it's necessary, that the ingress is included in the mesh. To accomplish that, we will edit the deployment to add a sidecar and tag it as a gateway:
+
+For mTLS it's necessary, that the ingress is included in the mesh. To accomplish that, we will patch the deployment to add a sidecar and tag it as a gateway:
 
 ```sh
-kubectl -n ingress-nginx edit deployment ingress-nginx-controller
+kubectl label namespace ingress-nginx kuma.io/sidecar-injection=enabled
+kubectl -n ingress-nginx patch deployments/ingress-nginx-controller -p '{"spec":{"template":{"metadata":{"annotations":{"kuma.io/gateway":"enabled"}}}}}'
+kubectl -n ingress-nginx delete pod --all
 ```
 
-And add the following labels and annotations to the specification part
-```yaml
-spec:
-  template:
-    metadata:
-      labels:
-        kuma.io/sidecar-injection: enabled
-      annotations:
-        kuma.io/gateway: enabled
+Verify with:
+```sh
+kubectl -n ingress-nginx get deployments/ingress-nginx-controller -o yaml | yq .spec.template.metadata
 ```
+
+The Ingress-controller should also be present as service in the kuma dashboard named `ingress-nginx-controller_ingress-nginx_svc_80`
 
 #### Send request into mesh
 
@@ -90,11 +93,13 @@ curl backend.kuma-demo.svc.cluster.local:3001
 ```
 
 #### Activate mTLS
+
 ```sh
-kubectl apply -f traffic-mtls/
+kubectl apply -f mtls/
 ```
 
 #### Send request into mesh
+
 From outside:
 ```sh
 # from outside
@@ -104,19 +109,19 @@ curl backend.kuma-demo.svc.cluster.local:3001
 
 Within the mesh:
 ```sh
-kubectl exec -it $(kubectl -n kuma-demo get pods --no-headers -o custom-columns=":metadata.name" | grep "demo-app-") -c kuma-fe -- sh
+kubectl -n kuma-demo exec -it $(kubectl -n kuma-demo get pods --no-headers -o custom-columns=":metadata.name" | grep "demo-app-") -c kuma-fe -- sh
 curl backend:3001 -vI
 ```
 
 
 ### Step 6: Configure TrafficPermissions
+
 - **Requires mTLS and Traffic Permissions are an inbound policies**
 
-*Scenario:* Backend v2 dar
-- Traffic will be routes 80% to v0, 20% to v1 & 0% v2
-- v2 kann mit Header v2 aufgerufen werden
+*Scenario*: Connections are only allowed from `Frontend > Backend > Postgres` but not `Backend > Redis`
 
 ```sh
+kubectl delete trafficpermissions --all
 kubectl apply -f traffic-permissions/
 ```
 
