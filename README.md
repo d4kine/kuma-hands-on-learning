@@ -75,7 +75,7 @@ spec:
       labels:
         kuma.io/sidecar-injection: enabled
       annotations:
-		kuma.io/gateway: enabled
+        kuma.io/gateway: enabled
 ```
 
 #### Send request into mesh
