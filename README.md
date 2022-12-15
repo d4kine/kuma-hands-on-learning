@@ -39,7 +39,7 @@ watch kubectl get pod,deployment,service,ingress -A --field-selector=metadata.na
 ```sh
 git clone https://github.com/d4kine/occd-kuma-hol
 cd occd-kuma-hol
-./install.sh
+./install/install-kuma.sh
 ```
 
 After deployment, the Kuma GUI is exposed via ingress via http://kuma.127-0-0-1.nip.io:8080 (or http://localhost:5681/gui/#/ with port-forward)
