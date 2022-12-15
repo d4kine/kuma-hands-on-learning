@@ -1,0 +1,28 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: outside-mesh
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: intruder
+  name: intruder
+  namespace: outside-mesh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: intruder
+  template:
+    metadata:
+      labels:
+        app: intruder
+    spec:
+      containers:
+      - name: kuma-fe
+        image: kvn0218/kuma-demo-fe:latest
+        args: ["-P", "http://backend:3001"]
+        imagePullPolicy: IfNotPresent

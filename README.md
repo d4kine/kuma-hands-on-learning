@@ -1,6 +1,6 @@
 # OCCD Kuma Hands-On-Learning Session
 
-## Preresiquies
+## Preparation
 
 The following software needs to be installed:
 - `git`
@@ -13,12 +13,10 @@ The following software needs to be installed:
 **Important**: Your router must allow DNS rebind for the url `nip.io`.
 - To setup this in your FRITZ!Box go to `Heimnetz > Netzwerk > Netzwerkeinstellungen` and search for `DNS-Rebind-Schutz` on the bottom of the page
 
-For Windows users please use `WSL/WSL2`.
+- For Windows users please use `WSL/WSL2`.
 
 
-
-
-## Training-Session
+## Training session
 
 ### Step 1: Install k3d cluster
 ```sh
@@ -34,40 +32,44 @@ Keep track of the installation if ou want to:
 watch kubectl get pod,deployment,service,ingress -A --field-selector=metadata.namespace!=kube-system
 ```
 
+
 ### Step 2: Install Kuma
 ```sh
 git clone https://github.com/d4kine/occd-kuma-hol
 cd occd-kuma-hol
-sudo ./install.sh
+./install.sh
 ```
 
 After deployment, the Kuma GUI is exposed via ingress via http://kuma.127-0-0-1.nip.io:8080 (or http://localhost:5681/gui/#/ with port-forward)
 
 
-### Step 2: Deploy demo app
+### Step 3: Deploy demo app
 ```sh
-kubectl apply -f ./manifests/10_demo.yaml
+kubectl apply -f demo/
 ```
 Verify the deployment by calling http://frontend.127-0-0-1.nip.io:8080/ (or http://localhost:5000 with port-forward)
 
 
-
-### Step 3: Configure TrafficRoutes
+### Step 4: Configure TrafficRoutes
 *Scenario:* 1 frontend, 3 backends (v0,v1,v2), 1 redis, 1 postgres
-- Traffic will be routes 80% to v0, 20% to v1 & 0% v2
-- v2 kann mit Header v2 aufgerufen werden
+- Traffic will be routes 80% to v0, 20% to v1 & 0% to v2
+- It's only possible to call v2 with the header-atribute: `version: v2`
 
 ```sh
-kubectl apply -f ./manifests/20_traffic-route.yaml
+kubectl apply -f traffic-routes/
 ```
 
 
-
-
-### Step 4: Configure mTLS
+### Step 5: Configure mTLS
 
 #### Add Ingress to Mesh
 For mTLS it's necessary, that the ingress is included in the mesh. To accomplish that, we will edit the deployment to add a sidecar and tag it as a gateway:
+
+```sh
+kubectl -n ingress-nginx edit deployment ingress-nginx-controller
+```
+
+And add the following labels and annotations to the specification part
 ```yaml
 spec:
   template:
@@ -87,11 +89,9 @@ kubectl -n outside-mesh exec -it $(kubectl -n outside-mesh get pods --no-headers
 curl backend.kuma-demo.svc.cluster.local:3001
 ```
 
-
-
 #### Activate mTLS
-```
-kubectl apply -f mtls.yaml
+```sh
+kubectl apply -f traffic-mtls/
 ```
 
 #### Send request into mesh
@@ -109,7 +109,16 @@ curl backend:3001 -vI
 ```
 
 
-### Step X: Confiure Observability
+### Step 6: Configure TrafficPermissions
+- **Requires mTLS and Traffic Permissions are an inbound policies**
+
+*Scenario:* Backend v2 dar
+- Traffic will be routes 80% to v0, 20% to v1 & 0% v2
+- v2 kann mit Header v2 aufgerufen werden
+
+```sh
+kubectl apply -f traffic-permissions/
+```
 
 
 ### Troubleshooting
