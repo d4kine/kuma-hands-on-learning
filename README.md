@@ -56,7 +56,7 @@ Verify the deployment by calling http://frontend.127-0-0-1.nip.io:8080/ (or http
 ### Step 4: Configure TrafficRoutes
 
 *Scenario: 1 frontend, 3 backends (v0,v1,v2), 1 redis, 1 postgres*
-- Traffic will be routes 80% to v0, 20% to v1 & 0% to v2
+- Traffic will be routed 80% to v0, 20% to v1 & 0% to v2
 - It's only possible to call v2 with the header-atribute: `version: v2`
 
 ```sh
