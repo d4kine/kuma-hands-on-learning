@@ -1,0 +1,37 @@
+apiVersion: kuma.io/v1alpha1
+kind: TrafficRoute
+metadata:
+  name: frontend-to-backend
+  namespace: kuma-demo
+mesh: default
+spec:
+  sources:
+  - match:
+      kuma.io/service: frontend_kuma-demo_svc_8080
+  destinations:
+  - match:
+      kuma.io/service: backend_kuma-demo_svc_3001
+  conf:
+    http:
+    - match:
+        method:
+          exact: GET
+        headers:
+          version:
+            exact: v2
+      destination:
+        kuma.io/service: backend_kuma-demo_svc_3001
+        version: v2
+    split:
+    - weight: 80
+      destination:
+        kuma.io/service: backend_kuma-demo_svc_3001
+        version: v0
+    - weight: 20
+      destination:
+        kuma.io/service: backend_kuma-demo_svc_3001
+        version: v1
+    - weight: 0
+      destination:
+        kuma.io/service: backend_kuma-demo_svc_3001
+        version: v2
