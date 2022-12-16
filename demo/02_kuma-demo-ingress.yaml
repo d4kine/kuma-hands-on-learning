@@ -5,7 +5,7 @@ metadata:
   name: kuma-demo-frontend
   namespace: kuma-demo
 spec:
-  ingressClassName: nginx
+  ingressClassName: kong
   rules:
   - host: frontend.127-0-0-1.nip.io
     http:

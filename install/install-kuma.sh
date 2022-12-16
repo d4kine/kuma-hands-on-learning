@@ -4,7 +4,7 @@ set -o errexit
 helm repo add kuma https://kumahq.github.io/charts
 helm repo update
 
-helm upgrade --install kuma kuma/kuma --values cp-standalone-values.yaml --namespace kuma-cp --create-namespace
+helm upgrade --install kuma kuma/kuma --values kuma-cp-standalone-values.yaml --namespace kuma-cp --create-namespace
 
 
 echo "apiVersion: networking.k8s.io/v1
@@ -15,7 +15,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/app-root: '/gui'
 spec:
-  ingressClassName: nginx
+  ingressClassName: kong
   rules:
   - host: kuma.127-0-0-1.nip.io
     http:

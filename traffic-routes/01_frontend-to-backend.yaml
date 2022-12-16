@@ -7,7 +7,7 @@ mesh: default
 spec:
   sources:
   - match:
-      kuma.io/service: frontend_kuma-demo_svc_8080
+      kuma.io/service: '*'
   destinations:
   - match:
       kuma.io/service: backend_kuma-demo_svc_3001

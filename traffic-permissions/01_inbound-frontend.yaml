@@ -1,0 +1,13 @@
+---
+apiVersion: kuma.io/v1alpha1
+kind: TrafficPermission
+mesh: default
+metadata:
+  name: inbound-frontend
+spec:
+  sources:
+    - match:
+        kuma.io/service: 'kong-1671175440-kong-proxy_kong_svc_80'
+  destinations:
+    - match:
+        kuma.io/service: 'frontend_kuma-demo_svc_8080'

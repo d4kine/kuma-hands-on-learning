@@ -7,7 +7,7 @@ metadata:
 spec:
   sources:
     - match:
-        kuma.io/service: '*'
+        kuma.io/service: 'backend_kuma-demo_svc_3001'
   destinations:
     - match:
         kuma.io/service: 'postgres_kuma-demo_svc_5432'

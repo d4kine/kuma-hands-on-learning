@@ -21,50 +21,40 @@ The following software needs to be installed:
 ### Step 1: Install k3d cluster
 
 ```sh
-git clone https://github.com/FabianHardt/k3d-bootstrap-cluster
-cd k3d-bootstrap-cluster
-sudo ./create-sample.sh
-```
-Don't deploy the HttpBin service. The setup will ask for a few items, just press enter but on `Deploy httpbin sample? (Yes/No) [Yes]:` type `No`
-The nginx Ingress is important for this session!
-
-Keep track of the installation if ou want to:
-```
-watch kubectl get pod,deployment,service,ingress -A --field-selector=metadata.namespace!=kube-system
+k3d cluster create mesh-demo --api-port 127.0.0.1:6445 --servers 1 --agents 2 --port '8088:80@loadbalancer' --k3s-arg '--disable=traefik@server:0'
 ```
 
 
-### Step 2: Install Kuma
+Keep track of the installation if you want:
+```
+watch kubectl get deployment,pod,service,ingress -A --field-selector=metadata.namespace!=kube-system
+```
+
+
+### Step 2: Install Kuma Mesh & Kong Ingress
 
 ```sh
 git clone https://github.com/d4kine/occd-kuma-hol
-cd occd-kuma-hol
-./install/install-kuma.sh
+cd occd-kuma-hol/install
+
+./install-kuma.sh
+
+./install-kong.sh
 ```
 
-After deployment, the Kuma GUI is exposed via ingress via http://kuma.127-0-0-1.nip.io:8080 (or http://localhost:5681/gui/#/ with port-forward)
+After deployment, the Kuma GUI is exposed via ingress via http://kuma.127-0-0-1.nip.io:8088/gui (or http://localhost:5681/gui/#/ with port-forward)
 
 
 ### Step 3: Deploy demo app
 
 ```sh
+cd..
 kubectl apply -f demo/
 ```
-Verify the deployment by calling http://frontend.127-0-0-1.nip.io:8080/ (or http://localhost:5000 with port-forward)
+Verify the deployment by calling http://frontend.127-0-0-1.nip.io:8088 (or http://localhost:5000 with port-forward)
 
 
-### Step 4: Configure TrafficRoutes
-
-*Scenario: 1 frontend, 3 backends (v0,v1,v2), 1 redis, 1 postgres*
-- Traffic will be routed 80% to v0, 20% to v1 & 0% to v2
-- It's only possible to call v2 with the header-atribute: `version: v2`
-
-```sh
-kubectl apply -f traffic-routes/
-```
-
-
-### Step 5: Configure mTLS
+### Step 4: Configure mTLS
 
 #### Add Ingress to Mesh
 
@@ -114,11 +104,10 @@ curl backend:3001 -vI
 ```
 
 
-### Step 6: Configure TrafficPermissions
+### Step 5: Configure TrafficPermissions
 
+*Scenario: Connections are only allowed from `Frontend > Backend > Postgres` but not `Backend > Redis`*
 - **Requires mTLS and Traffic Permissions are an inbound policies**
-
-*Scenario*: Connections are only allowed from `Frontend > Backend > Postgres` but not `Backend > Redis`
 
 ```sh
 kubectl delete trafficpermissions --all
@@ -126,8 +115,22 @@ kubectl apply -f traffic-permissions/
 ```
 
 
+### Step 6: Configure TrafficRoutes
+
+*Scenario: 1 frontend, 3 backends (v0,v1,v2), 1 redis, 1 postgres*
+- Traffic will be routed 80% to v0, 20% to v1 & 0% to v2
+- It's only possible to call v2 with the header-atribute: `version: v2`
+
+```sh
+kubectl delete trafficpermissions --all
+
+kubectl apply -f traffic-routes/
+```
+
+
 ### Troubleshooting
 
 In case, that the ingress does not work (maybe dns rebound or config), you can execute the attached script `./port-forward.sh` and use the following URLs:
+
 - For Kuma GUI: http://localhost:5681/gui/#/
 - For demo frontend: http://localhost:5000
