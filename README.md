@@ -1,8 +1,13 @@
-# OCCD Kuma Hands-On-Learning Session
+# Kuma Hands-On-Learning Session
+
+Small demo to demonstrate the possibilities with Kuma Service Mesh. The demo application was originally developed by kuma and has the following components:
+
+![image](docs/demo-app.png)
 
 ## Preparation
 
 The following software needs to be installed:
+
 - `git`
 - `docker`
 - `kubectl`
@@ -15,23 +20,20 @@ The following software needs to be installed:
 
 - For Windows users please use `WSL/WSL2`.
 
-
 ## Training session
 
-### Step 1: Install k3d cluster
+### Step 1: Install k3d cluster without Traefik
 
 ```sh
 k3d cluster create mesh-demo --api-port 127.0.0.1:6445 --servers 1 --agents 2 --port '8088:80@loadbalancer' --k3s-arg '--disable=traefik@server:0'
 ```
 
-
 Keep track of the installation if you want:
 ```sh
-watch kubectl get deployment,pod,service,ingress -A --field-selector=metadata.namespace!=kube-system
+watch -n 1 kubectl get deployment,pod,service,ingress -A --field-selector=metadata.namespace!=kube-system
 ```
 
-
-### Step 2: Install Kuma Mesh & Kong Ingress
+### Step 2: Install Kuma Mesh & Kong Ingress Controller
 
 ```sh
 git clone https://github.com/d4kine/occd-kuma-hol
@@ -44,7 +46,6 @@ cd occd-kuma-hol/install
 
 After deployment, the Kuma GUI is exposed via ingress via http://kuma.127-0-0-1.nip.io:8088/gui (or http://localhost:5681/gui/#/ with port-forward)
 
-
 ### Step 3: Deploy demo app
 
 ```sh
@@ -52,7 +53,6 @@ cd ..
 kubectl apply -f demo/
 ```
 Verify the deployment by calling http://frontend.127-0-0-1.nip.io:8088 (or http://localhost:5000 with port-forward)
-
 
 ### Step 4: Configure mTLS
 
@@ -100,7 +100,6 @@ kubectl -n kuma-demo exec -it $(kubectl -n kuma-demo get pods --no-headers -o cu
 curl backend:3001 -vI
 ```
 
-
 ### Step 5: Configure TrafficPermissions
 
 *Scenario: Connections are only allowed from `Frontend > Backend > Postgres` but not `Backend > Redis`*
@@ -118,7 +117,6 @@ edit traffic-permissions/01_inbound-frontend.yaml
 kubectl apply -f traffic-permissions/
 ```
 
-
 ### Step 6: Configure TrafficRoutes
 
 *Scenario: 1 frontend, 3 backends (v0,v1,v2), 1 redis, 1 postgres*
@@ -128,7 +126,6 @@ kubectl apply -f traffic-permissions/
 ```sh
 kubectl apply -f traffic-routes/
 ```
-
 
 ### Troubleshooting
 

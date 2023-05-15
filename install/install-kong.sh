@@ -6,7 +6,8 @@ kubectl annotate ns kong kuma.io/sidecar-injection="enabled"
 helm repo add kong https://charts.konghq.com
 helm repo update
 
-helm install kong/kong --generate-name \
+helm upgrade --install kong kong/kong \
+    --version 2.20.2 \
     --namespace kong \
-    -f kong-cp-values.yaml \
+    --values kong-cp-values.yaml \
     --set ingressController.installCRDs=false
