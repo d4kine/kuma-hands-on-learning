@@ -26,7 +26,7 @@ k3d cluster create mesh-demo --api-port 127.0.0.1:6445 --servers 1 --agents 2 --
 
 
 Keep track of the installation if you want:
-```
+```sh
 watch kubectl get deployment,pod,service,ingress -A --field-selector=metadata.namespace!=kube-system
 ```
 
