@@ -36,7 +36,7 @@ watch -n 1 kubectl get deployment,pod,service,ingress -A --field-selector=metada
 ### Step 2: Install Kuma Mesh & Kong Ingress Controller
 
 ```sh
-git clone https://github.com/d4kine/occd-kuma-hol
+git clone https://github.com/d4kine/kuma-hands-on-learning
 cd occd-kuma-hol/install
 
 ./install-kuma.sh
