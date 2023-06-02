@@ -1,7 +1,7 @@
 #!/bin/bash
 
 kubectl create namespace kong
-kubectl annotate ns kong kuma.io/sidecar-injection="enabled"
+kubectl label namespace kong kuma.io/sidecar-injection="enabled"
 
 helm repo add kong https://charts.konghq.com
 helm repo update
